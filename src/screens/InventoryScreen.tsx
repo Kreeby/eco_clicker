@@ -1,23 +1,20 @@
-import React, { useContext } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { GameStateContext } from '../context/GameStateProvider';
-import { GameState } from '../models/GameState';
+import React from 'react';
+import {View, Text, TouchableOpacity, StyleSheet, Alert} from 'react-native';
+import {useGameState} from '../context/GameStateProvider';
+import {GameState} from '../models/GameState.ts';
 
-const InventoryScreen: React.FC = () => {
-  const gameStateContext = useContext(GameStateContext);
-
-  if (!gameStateContext) {
-    // Handle the case when the context is null, such as showing a loading indicator or returning an empty component
-    return;
-  }
-
-  const { gameState, setGameState } = gameStateContext;
+const InventoryScreen = () => {
+  const {gameState, setGameState} = useGameState(); // Using the hook for cleaner access
 
   const handleUpgrade = (itemId: string) => {
-    const itemIndex = gameState.ownedItems.findIndex(item => item.id === itemId);
-    if (itemIndex !== -1 && gameState.points >= gameState.ownedItems[itemIndex].cost) {
+    const itemIndex = gameState.ownedItems.findIndex(
+      item => item.id === itemId,
+    );
+    if (
+      itemIndex !== -1 &&
+      gameState.points >= gameState.ownedItems[itemIndex].cost
+    ) {
       gameState.upgradeItem(itemIndex);
-      // Update the context with the new game state
       setGameState(new GameState([...gameState.ownedItems], gameState.points));
     } else {
       Alert.alert('Not enough points to upgrade or item not found.');
@@ -29,8 +26,13 @@ const InventoryScreen: React.FC = () => {
       <Text style={styles.inventoryTitle}>Inventory</Text>
       {gameState.ownedItems.map((item, index) => (
         <View key={index} style={styles.inventoryItem}>
-          <Text style={styles.itemText}>{`${item.name} (Level ${item.level}) - Benefit: ${item.benefit}`}</Text>
-          <TouchableOpacity style={styles.upgradeButton} onPress={() => handleUpgrade(item.id)}>
+          <Text
+            style={
+              styles.itemText
+            }>{`${item.name} (Level ${item.level}) - Benefit: ${item.benefit}`}</Text>
+          <TouchableOpacity
+            style={styles.upgradeButton}
+            onPress={() => handleUpgrade(item.id)}>
             <Text style={styles.upgradeButtonText}>Upgrade</Text>
           </TouchableOpacity>
         </View>

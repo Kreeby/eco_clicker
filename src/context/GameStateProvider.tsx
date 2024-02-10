@@ -1,31 +1,33 @@
-import React, { createContext, useState } from 'react';
-import { Text } from 'react-native'; // Import Text component
-import { GameState } from '../models/GameState';
-
-interface GameStateProviderProps {
-  children: React.ReactNode;
-}
+import React, {createContext, useContext, useState, ReactNode} from 'react';
+import {GameState} from '../models/GameState';
 
 interface GameStateContextType {
   gameState: GameState;
-  setGameState: (newState: GameState) => void;
+  setGameState: React.Dispatch<React.SetStateAction<GameState>>;
 }
 
-export const GameStateContext = createContext<GameStateContextType | null>(null);
+const initialState: GameStateContextType = {
+  gameState: new GameState(),
+  setGameState: () => {}, // Dummy function for initial value
+};
 
-const GameStateProvider: React.FC<GameStateProviderProps> = ({ children }) => {
-  const [gameState, setGameState] = useState(new GameState());
+const GameStateContext = createContext<GameStateContextType>(initialState);
 
-  const updateGameState = (newState: GameState) => {
-    setGameState(newState);
-  };
+// Use ReactNode for typing children prop, which can accept any valid React child (e.g., JSX, null, etc.)
+interface GameStateProviderProps {
+  children: ReactNode;
+}
+
+export const GameStateProvider: React.FC<GameStateProviderProps> = ({
+  children,
+}) => {
+  const [gameState, setGameState] = useState<GameState>(new GameState());
 
   return (
-    <GameStateContext.Provider value={{ gameState, setGameState: updateGameState }}>
-      {/* Wrap children in a Text component */}
-      <Text>{children}</Text>
+    <GameStateContext.Provider value={{gameState, setGameState}}>
+      {children}
     </GameStateContext.Provider>
   );
 };
 
-export default GameStateProvider;
+export const useGameState = () => useContext(GameStateContext);

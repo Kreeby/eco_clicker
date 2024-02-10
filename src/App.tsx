@@ -1,24 +1,20 @@
 // src/App.tsx
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
-import { GameState } from './models/GameState';
-import { Item } from './models/Item';
-import { Achievement } from './models/Achievement';
-import { initialItems, initialAchievements } from './config/itemsConfig';
+import React from 'react';
+import {NavigationContainer} from '@react-navigation/native';
+import {GameStateProvider} from './context/GameStateProvider';
 import AppNavigation from './Navigation';
-import GameStateProvider  from './context/GameStateProvider';
-import { NavigationContainer } from '@react-navigation/native';
 
-
-const App: React.FC = () => {
+const App = () => {
   return (
     <NavigationContainer>
-      <GameStateProvider> {/* Wrap the entire app with the context provider */}
-        <AppNavigation /> {/* Your main navigation component */}
+      <GameStateProvider>
+        <AppNavigation />
       </GameStateProvider>
     </NavigationContainer>
   );
 };
+
+export default App;
 
 // const App: React.FC = () => {
 //   const [gameState, setGameState] = useState(new GameState(initialItems));
@@ -32,7 +28,6 @@ const App: React.FC = () => {
 //         return new GameState([...prevState.ownedItems], prevState.points + clickBenefit, prevState.passiveIncomeRate);
 //     });
 //   };
-
 
 //   // Handle purchasing items
 //   const handlePurchase = (itemId: string) => {
@@ -98,7 +93,6 @@ const App: React.FC = () => {
 //           ))}
 //         </View>
 
-        
 //         <View style={styles.inventoryContainer}>
 //           <Text style={styles.inventoryTitle}>Inventory</Text>
 //           {gameState.ownedItems.map((item, index) => (
@@ -111,7 +105,6 @@ const App: React.FC = () => {
 //           ))}
 //         </View>
 
-        
 //         <View style={styles.achievementsContainer}>
 //           <Text style={styles.achievementsTitle}>Achievements</Text>
 //           {achievements.map((achievement, index) => (
@@ -200,5 +193,3 @@ const App: React.FC = () => {
 //     color: 'green',
 //   }
 // });
-
-export default App;

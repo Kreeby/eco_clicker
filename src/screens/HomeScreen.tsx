@@ -1,100 +1,96 @@
 // src/screens/HomeScreen.tsx
-import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { initialItems, initialAchievements } from '../config/itemsConfig';
-import { GameState } from '../models/GameState';
-import { GameStateContext } from '../context/GameStateProvider';
+import React, {useEffect} from 'react';
+import {View, Text, TouchableOpacity, StyleSheet, Alert} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import {initialItems} from '../config/itemsConfig';
+import {useGameState} from '../context/GameStateProvider';
+import {GameState} from '../models/GameState.ts';
 
+const HomeScreen = () => {
+  const navigation = useNavigation();
+  const {gameState, setGameState} = useGameState();
 
-const HomeScreen: React.FC = () => {
-    const navigation = useNavigation();
-  
-    // Consume the GameStateContext
-    const gameStateContext = useContext(GameStateContext);
-
-    if (!gameStateContext || !gameStateContext.gameState) {
-        // Handle the case when the context is null or gameState is null,
-        // such as showing a loading indicator or returning an empty component
-        return;
-    }
-
-    const { gameState, setGameState } = gameStateContext;
-  
-    const [achievements, setAchievements] = useState(initialAchievements);
-  
-
-    // Handle item clicks to earn points
-    const handleItemClick = () => {
-        const clickBenefit = gameState.calculateClickBenefit();
-        const newGameState = new GameState([...gameState.ownedItems], gameState.points + clickBenefit, gameState.passiveIncomeRate);
-        setGameState(newGameState);
-    };
-    
-      
-  
-    // Handle purchasing items
-    const handlePurchase = (itemId: string) => {
-      const itemToPurchase = initialItems.find(item => item.id === itemId);
-      if (itemToPurchase && gameState.points >= itemToPurchase.cost) {
-        gameState.purchaseItem(itemToPurchase);
-        setGameState(new GameState([...gameState.ownedItems], gameState.points));
-      } else {
-        Alert.alert('Not enough points to purchase this item.');
-      }
-    };
-  
-    // Handle upgrading items
-    const handleUpgrade = (itemId: string) => {
-      const itemIndex = gameState.ownedItems.findIndex(item => item.id === itemId);
-      if (itemIndex !== -1 && gameState.points >= gameState.ownedItems[itemIndex].cost) {
-        gameState.upgradeItem(itemIndex);
-        setGameState(new GameState([...gameState.ownedItems], gameState.points));
-      } else {
-        Alert.alert('Not enough points to upgrade or item not found.');
-      }
-    };
-  
-    // Passive income generation
-    useEffect(() => {
-        const interval = setInterval(() => {
-            const updatedState = gameState;
-            const passiveIncome = gameState.calculatePassiveIncome();
-            updatedState.addPoints(passiveIncome);
-            setGameState(updatedState);
-        }, 1000); // Adjust the interval as needed for your game's design
-    
-        return () => clearInterval(interval);
-    }, []);
-        
-
-    
-  
-    return (
-      <View style={styles.container}>
-          <Text style={styles.pointsDisplay}>Points: {gameState.points.toFixed(2)}</Text>
-          <TouchableOpacity style={styles.clickableArea} onPress={handleItemClick}>
-            <Text>Click Me!</Text>
-          </TouchableOpacity>
-  
-          <View style={styles.shopContainer}>
-            <Text style={styles.shopTitle}>Shop</Text>
-            {initialItems.map((item) => (
-              <TouchableOpacity key={item.id} style={styles.itemButton} onPress={() => handlePurchase(item.id)}>
-                <Text style={styles.itemText}>{item.name} - Cost: {item.cost} Points</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('Inventory')}>
-          <Text>Inventory</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('Achievements')}>
-          <Text>Achievements</Text>
-        </TouchableOpacity>
-      </View>
+  // Handle item clicks to earn points
+  const handleItemClick = () => {
+    const clickBenefit = gameState.calculateClickBenefit();
+    setGameState(
+      gameState =>
+        new GameState(
+          [...gameState.ownedItems],
+          gameState.points + clickBenefit,
+          gameState.passiveIncomeRate,
+        ),
     );
   };
-  
+
+  // Handle purchasing items
+  const handlePurchase = (itemId: string) => {
+    const itemToPurchase = initialItems.find(item => item.id === itemId);
+    if (itemToPurchase && gameState.points >= itemToPurchase.cost) {
+      // Clone the gameState to modify
+      const newGameState = new GameState(
+        [...gameState.ownedItems],
+        gameState.points,
+        gameState.passiveIncomeRate,
+      );
+      newGameState.purchaseItem(itemToPurchase);
+      setGameState(newGameState);
+    } else {
+      Alert.alert('Not enough points to purchase this item.');
+    }
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setGameState(prevState => {
+        const passiveIncome = prevState.calculatePassiveIncome();
+        // Note: Make sure this creates a new GameState correctly as per your class definition
+        return new GameState(
+          [...prevState.ownedItems],
+          prevState.points + passiveIncome,
+          prevState.passiveIncomeRate,
+        );
+      });
+    }, 1000); // Adjust the interval as needed for your game's design
+
+    return () => clearInterval(interval);
+  }, [setGameState]);
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.pointsDisplay}>
+        Points: {gameState.points.toFixed(2)}
+      </Text>
+      <TouchableOpacity style={styles.clickableArea} onPress={handleItemClick}>
+        <Text>Click Me!</Text>
+      </TouchableOpacity>
+
+      <View style={styles.shopContainer}>
+        <Text style={styles.shopTitle}>Shop</Text>
+        {initialItems.map(item => (
+          <TouchableOpacity
+            key={item.id}
+            style={styles.itemButton}
+            onPress={() => handlePurchase(item.id)}>
+            <Text style={styles.itemText}>
+              {item.name} - Cost: {item.cost} Points
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      <TouchableOpacity
+        style={styles.navButton}
+        onPress={() => navigation.navigate('Inventory')}>
+        <Text>Inventory</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.navButton}
+        onPress={() => navigation.navigate('Achievements')}>
+        <Text>Achievements</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {

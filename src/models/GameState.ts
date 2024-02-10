@@ -1,5 +1,5 @@
 // src/models/GameState.ts
-import { Item } from "./Item";
+import {Item} from './Item';
 
 export class GameState {
   points: number;
@@ -7,7 +7,6 @@ export class GameState {
   passiveIncomeRate: number;
 
   constructor(ownedItems: Item[] = [], points = 0, passiveIncomeRate = 0) {
-  
     this.ownedItems = ownedItems;
     this.points = points;
     this.passiveIncomeRate = passiveIncomeRate;
@@ -31,7 +30,7 @@ export class GameState {
       // Assuming `updatePassiveIncomeRate` recalculates `passiveIncomeRate` based on ownedItems
       this.updatePassiveIncomeRate();
     } else {
-      console.log("Not enough points");
+      console.log('Not enough points');
     }
   }
 
@@ -57,19 +56,21 @@ export class GameState {
       .reduce((sum, item) => sum + item.benefit, 0);
   }
 
-
   static initialStateFromConfig(): GameState {
     const initialItems = require('../config/itemsConfig').initialItems;
     return new GameState(initialItems);
   }
-  
+
   // New method to clone the current state and update points
-  static fromStateWithAddedPoints(currentState: GameState, pointsToAdd: number): GameState {
+  static fromStateWithAddedPoints(
+    currentState: GameState,
+    pointsToAdd: number,
+  ): GameState {
     // Correcting the order of arguments to match the constructor
     let newState = new GameState(
       currentState.ownedItems.slice(), // Correct order: first argument is an array of Item
       currentState.points + pointsToAdd, // Second argument is points
-      currentState.passiveIncomeRate // Assuming the third argument is passiveIncomeRate
+      currentState.passiveIncomeRate, // Assuming the third argument is passiveIncomeRate
     );
     // Additional logic as necessary
     return newState;
